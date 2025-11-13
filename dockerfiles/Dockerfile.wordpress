@@ -1,0 +1,123 @@
+FROM wordpress:php8.2-apache
+
+# Install additional packages
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    nano \
+    curl \
+    zip \
+    mariadb-client \
+    imagemagick \
+    libmagickwand-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-install \
+    mysqli \
+    pdo_mysql \
+    opcache \
+    exif
+
+# Install and configure Redis extension
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Install and configure ImageMagick extension
+RUN pecl install imagick && docker-php-ext-enable imagick
+
+# Configure PHP for WordPress
+RUN { \
+    echo 'opcache.enable=1'; \
+    echo 'opcache.memory_consumption=128'; \
+    echo 'opcache.interned_strings_buffer=8'; \
+    echo 'opcache.max_accelerated_files=4000'; \
+    echo 'opcache.revalidate_freq=2'; \
+    echo 'opcache.fast_shutdown=1'; \
+    echo 'opcache.enable_cli=1'; \
+    echo 'upload_max_filesize=256M'; \
+    echo 'post_max_size=256M'; \
+    echo 'max_execution_time=300'; \
+    echo 'max_input_vars=3000'; \
+    echo 'memory_limit=512M'; \
+} > /usr/local/etc/php/conf.d/custom.ini
+
+# Install WP-CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/wp-cli/v2.8.1/wp-cli.phar \
+    && chmod +x wp-cli.phar \
+    && mv wp-cli.phar /usr/local/bin/wp
+
+# Configure Apache
+RUN a2enmod rewrite
+RUN a2enmod headers
+RUN a2enmod expires
+RUN a2enmod ssl
+
+# Create custom Apache configuration
+RUN { \
+    echo '<Directory /var/www/html>'; \
+    echo '    Options FollowSymLinks'; \
+    echo '    AllowOverride All'; \
+    echo '    Require all granted'; \
+    echo '</Directory>'; \
+    echo ''; \
+    echo 'ServerTokens Prod'; \
+    echo 'ServerSignature Off'; \
+    echo ''; \
+    echo 'Header always set X-Content-Type-Options nosniff'; \
+    echo 'Header always set X-Frame-Options DENY'; \
+    echo 'Header always set X-XSS-Protection "1; mode=block"'; \
+    echo 'Header always set Referrer-Policy "strict-origin-when-cross-origin"'; \
+    echo 'Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"'; \
+} > /etc/apache2/conf-available/security.conf
+
+RUN a2enconf security
+
+# Create WordPress optimization configuration
+RUN { \
+    echo '# WordPress Performance'; \
+    echo 'ExpiresActive On'; \
+    echo 'ExpiresByType text/css "access plus 1 month"'; \
+    echo 'ExpiresByType application/javascript "access plus 1 month"'; \
+    echo 'ExpiresByType image/png "access plus 1 year"'; \
+    echo 'ExpiresByType image/jpg "access plus 1 year"'; \
+    echo 'ExpiresByType image/jpeg "access plus 1 year"'; \
+    echo 'ExpiresByType image/gif "access plus 1 year"'; \
+    echo 'ExpiresByType image/svg+xml "access plus 1 year"'; \
+    echo ''; \
+    echo '# Gzip Compression'; \
+    echo '<IfModule mod_deflate.c>'; \
+    echo '    AddOutputFilterByType DEFLATE text/plain'; \
+    echo '    AddOutputFilterByType DEFLATE text/html'; \
+    echo '    AddOutputFilterByType DEFLATE text/xml'; \
+    echo '    AddOutputFilterByType DEFLATE text/css'; \
+    echo '    AddOutputFilterByType DEFLATE application/xml'; \
+    echo '    AddOutputFilterByType DEFLATE application/xhtml+xml'; \
+    echo '    AddOutputFilterByType DEFLATE application/rss+xml'; \
+    echo '    AddOutputFilterByType DEFLATE application/javascript'; \
+    echo '    AddOutputFilterByType DEFLATE application/x-javascript'; \
+    echo '</IfModule>'; \
+} > /etc/apache2/conf-available/performance.conf
+
+RUN a2enconf performance
+
+# Install object cache drop-in for Redis
+RUN curl -O https://raw.githubusercontent.com/rhubarbgroup/redis-cache/develop/includes/object-cache.php \
+    && mkdir -p /var/www/html/wp-content \
+    && mv object-cache.php /var/www/html/wp-content/
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
+
+# Create health check script
+RUN echo '#!/bin/bash\ncurl -f http://localhost/ || exit 1' > /usr/local/bin/healthcheck \
+    && chmod +x /usr/local/bin/healthcheck
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD /usr/local/bin/healthcheck
+
+# Expose port
+EXPOSE 80
+
+# Start Apache
+CMD ["apache2-foreground"]

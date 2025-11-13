@@ -1,0 +1,14 @@
+{
+    "name": "Chat",
+    "alias": "chat",
+    "description": "",
+    "core": true,
+    "keywords": [],
+    "priority": 0,
+    "providers": [],
+    "aliases": {},
+    "files": [
+        "vendor/autoload.php"
+    ],
+    "requires": []
+}

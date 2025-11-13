@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --grayWhite: #f9f7f7;
+    --darkGray: #292929;
+    --pureWhite: #ffffff;
+    --gradient1: linear-gradient(
+        90deg,
+        #fd7f57 -17.86%,
+        #e22861 25.88%,
+        #763cd4 107.47%
+    );
+    --imageSkeletonGradient: linear-gradient(90deg, #dfdfdf 0%, #f1f1f1 100%);
+    --imageDarkSkeletonGradient: linear-gradient(90deg, #222 0%, #292929 100%);
+    --imageStyleGradient: linear-gradient(
+        180deg,
+        rgba(125, 125, 125, 0) 3.66%,
+        rgba(45, 45, 45, 0.11) 19.16%,
+        rgba(20, 20, 20, 0.43) 47.38%,
+        rgba(20, 20, 20, 0.77) 82.34%,
+        #141414 109.76%
+    );
+    --gradient-new: linear-gradient(
+        129deg,
+        #fff1bf 13.95%,
+        #ec458d 35.2%,
+        #e14591 42.29%,
+        #c6469d 54.4%,
+        #9a49b1 70.07%,
+        #664cc9 86.05%
+    );
+    --gradient-2: linear-gradient(336deg, #e60c84 19.27%, #ffcf4b 84.21%);
+    --gradient-3: linear-gradient(180deg, #a26ef6 0%, #763cd4 100%);
+}
+
+/* start utility class */
+
+@layer base {
+    html {
+        font-family: "Figtree", sans-serif;
+    }
+}
+
+html,
+body {
+    background-color: var(--grayWhite);
+    color: #141414;
+}
+
+html.dark,
+html.dark body {
+    background-color: var(--darkGray);
+    color: var(--pureWhite);
+}
+
+/* start scrollbar css */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 12px;
+    background-color: rgba(137, 137, 137, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(137, 137, 137, 0.7);
+}
+
+pre {
+	white-space: pre-wrap;
+}
+
+/* end utility class */
+
+/* end scrollbar css */
+
+/* start gradient css */
+.gradient-3 {
+    background: var(--gradient-3);
+}
+
+.gradient-5 {
+    background: var(--gradient-new);
+}
+
+.imageStyleGradient {
+    background-image: var(--imageStyleGradient);
+}
+
+.image-skeleton-gradient {
+    background: #dfdfdf;
+    background-image: var(--imageSkeletonGradient);
+}
+
+.gradient-border {
+    position: relative;
+}
+
+.gradient-border::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: 6px;
+	padding: 2px;
+	background: var(--gradient-new);
+	-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+}
+/* end gradient css */
+
+.gradient-border-r {
+    border-right: 3px solid transparent;
+}
+
+.gradient-border-r__active {
+    border-right-width: 3px;
+    border-style: solid;
+    border-image: var(--gradient-2) 1 100%;
+}
+
+html.dark .image-skeleton-gradient {
+    background: #292929;
+    background-image: var(--imageDarkSkeletonGradient);
+}
+
+/* start linear progressbar css */
+.linear-progressbar {
+    width: 100%;
+    height: 3px;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+    z-index: 999;
+}
+
+.linear-progressbar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background: #fd7f57;
+    background-image: var(--gradient1);
+    animation: progress linear 2s infinite;
+}
+
+@keyframes progress {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
+}
+/* end linear progressbar css */
+
+.text-outline {
+	-webkit-text-stroke-width: 1px;
+	-webkit-text-stroke-color: #333332;
+}
+
+@media (max-width: 640px) {
+    .menu-icon__btn {
+        display: block;
+    }
+}
+
+.toastify div {
+	word-break: break-word;
+}
+
+/* start analyze loader css */
+.bullet-bg-pulse-1 {
+	background: #FFFFFF;
+	animation: pulse 1.3s infinite;
+}
+
+.bullet-bg-pulse-2 {
+	background: #FFFFFF;
+	animation: pulse 1.5s infinite;
+}
+
+.bullet-bg-pulse-3 {
+	background: #FFFFFF;
+	animation: pulse 2s infinite;
+}
+
+/* opacity pulse */
+@keyframes pulse {
+	0% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+/* end analyze loader css */

@@ -1,9 +1,10 @@
-# WordPress Multi-Site Docker Deployment with CI/CD
+# WordPress Multi-Site Docker Platform
 
-A comprehensive Docker-based solution for managing multiple WordPress websites with automated CI/CD pipelines, featuring automated deployments, backups, monitoring, and easy website addition through GitHub Actions.
+A comprehensive Docker-based platform for managing multiple WordPress websites with automated CI/CD deployment, monitoring, and backup systems.
 
-[![Deploy](https://github.com/your-username/wordpress-multisite/workflows/Deploy%20WordPress%20Multi-Site/badge.svg)](https://github.com/your-username/wordpress-multisite/actions)
-[![Backup & Monitor](https://github.com/your-username/wordpress-multisite/workflows/Backup%20&%20Monitor/badge.svg)](https://github.com/your-username/wordpress-multisite/actions)
+[![Deploy](https://img.shields.io/github/workflow/status/yourusername/wp-multisite/Deploy?label=Deploy&logo=github)](https://github.com/yourusername/wp-multisite/actions)
+[![Security](https://img.shields.io/github/workflow/status/yourusername/wp-multisite/Security%20Scan?label=Security&logo=shield)](https://github.com/yourusername/wp-multisite/actions)
+[![Health Check](https://img.shields.io/badge/Health-Monitoring-green?logo=heartbeat)](https://github.com/yourusername/wp-multisite)
 
 ## 🌟 Features
 

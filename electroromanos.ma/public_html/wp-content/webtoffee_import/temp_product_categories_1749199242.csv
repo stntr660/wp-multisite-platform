@@ -1,0 +1,44 @@
+Term ID,Name,Slug,Description,Parent
+,Gros électroménager,gros-electromenager,Catégorie principale: Gros électroménager,
+,Cuisson,gros-electromenager-cuisson,Sous-catégorie de Gros électroménager,Gros électroménager
+,Four,gros-electromenager-cuisson-four,Type de produit dans Cuisson,Cuisson
+,Plaque de cuisson,gros-electromenager-cuisson-plaque-de-cuisson,Type de produit dans Cuisson,Cuisson
+,Cuisinière,gros-electromenager-cuisson-cuisiniere,Type de produit dans Cuisson,Cuisson
+,Lavage,gros-electromenager-lavage,Sous-catégorie de Gros électroménager,Gros électroménager
+,Lave-vaisselle,gros-electromenager-lavage-lave-vaisselle,Type de produit dans Lavage,Lavage
+,Lave-linge,gros-electromenager-lavage-lave-linge,Type de produit dans Lavage,Lavage
+,Froid,gros-electromenager-froid,Sous-catégorie de Gros électroménager,Gros électroménager
+,Réfrigérateur,gros-electromenager-froid-refrigerateur,Type de produit dans Froid,Froid
+,Congélateur,gros-electromenager-froid-congelateur,Type de produit dans Froid,Froid
+,Cave à vin,gros-electromenager-froid-cave-a-vin,Type de produit dans Froid,Froid
+,Petit électroménager,petit-electromenager,Catégorie principale: Petit électroménager,
+,Préparation culinaire,petit-electromenager-preparation-culinaire,Sous-catégorie de Petit électroménager,Petit électroménager
+,Mixeur/Blender,petit-electromenager-preparation-culinaire-mixeurblender,Type de produit dans Préparation culinaire,Préparation culinaire
+,Robot multifonction,petit-electromenager-preparation-culinaire-robot-multifonction,Type de produit dans Préparation culinaire,Préparation culinaire
+,Hachoir,petit-electromenager-preparation-culinaire-hachoir,Type de produit dans Préparation culinaire,Préparation culinaire
+,Petit-déjeuner,petit-electromenager-petit-dejeuner,Sous-catégorie de Petit électroménager,Petit électroménager
+,Machine à café,petit-electromenager-petit-dejeuner-machine-a-cafe,Type de produit dans Petit-déjeuner,Petit-déjeuner
+,Bouilloire,petit-electromenager-petit-dejeuner-bouilloire,Type de produit dans Petit-déjeuner,Petit-déjeuner
+,Grille-pain,petit-electromenager-petit-dejeuner-grille-pain,Type de produit dans Petit-déjeuner,Petit-déjeuner
+,Entretien,petit-electromenager-entretien,Sous-catégorie de Petit électroménager,Petit électroménager
+,Aspirateur,petit-electromenager-entretien-aspirateur,Type de produit dans Entretien,Entretien
+,Nettoyeur vapeur,petit-electromenager-entretien-nettoyeur-vapeur,Type de produit dans Entretien,Entretien
+,Cuisson,petit-electromenager-cuisson,Sous-catégorie de Petit électroménager,Petit électroménager
+,Friteuse,petit-electromenager-cuisson-friteuse,Type de produit dans Cuisson,Cuisson
+,Grill,petit-electromenager-cuisson-grill,Type de produit dans Cuisson,Cuisson
+,Four micro-ondes,petit-electromenager-cuisson-four-micro-ondes,Type de produit dans Cuisson,Cuisson
+,TV & Audio,tv-and-audio,Catégorie principale: TV & Audio,
+,TV,tv-and-audio-tv,Sous-catégorie de TV & Audio,TV & Audio
+,Smart TV,tv-and-audio-tv-smart-tv,Type de produit dans TV,TV
+,TV Standard,tv-and-audio-tv-tv-standard,Type de produit dans TV,TV
+,Audio,tv-and-audio-audio,Sous-catégorie de TV & Audio,TV & Audio
+,Home Cinema,tv-and-audio-audio-home-cinema,Type de produit dans Audio,Audio
+,Barre de son,tv-and-audio-audio-barre-de-son,Type de produit dans Audio,Audio
+,Enceinte,tv-and-audio-audio-enceinte,Type de produit dans Audio,Audio
+,Climatisation,climatisation,Catégorie principale: Climatisation,
+,Climatiseur,climatisation-climatiseur,Sous-catégorie de Climatisation,Climatisation
+,Climatiseur Split,climatisation-climatiseur-climatiseur-split,Type de produit dans Climatiseur,Climatiseur
+,Climatiseur Standard,climatisation-climatiseur-climatiseur-standard,Type de produit dans Climatiseur,Climatiseur
+,Traitement air,climatisation-traitement-air,Sous-catégorie de Climatisation,Climatisation
+,Déshumidificateur,climatisation-traitement-air-deshumidificateur,Type de produit dans Traitement air,Traitement air
+,Purificateur,climatisation-traitement-air-purificateur,Type de produit dans Traitement air,Traitement air

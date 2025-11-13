@@ -1,0 +1,647 @@
+// fonts
+@font-face {
+    font-family: 'IBM Plex Mono', monospace;
+    src: url(Venera-700.otf) format("truetype");
+}
+
+$font-inter: 'Inter', sans-serif;
+$font-roboto-mono: 'Roboto Mono', monospace;
+$font-space-grotesk: 'Space Grotesk', sans-serif;
+$font-Venera : 'Venera', sans-serif;
+
+// Colors
+$blue: #2ea2cc;
+$indigo: #5603ad;
+$purple: #8965e0;
+$pink: #f78da7;
+$red: #cf2e2e;
+$orange: #ff6900;
+$yellow: #fcb900;
+$green: #00d084;
+$teal: #11cdef;
+$cyan: #2bffc6;
+$white: #fff;
+$gray: #8898aa;
+$gray-dark: #95987C;
+$light: #ced4da;
+$lighter: #e9ecef;
+$primary: #A7D26D;
+$secondary: #181A0F;
+$success: #5dd05d;
+$text: #FFFFFF8C;
+$info: #11cdef;
+$warning: #fb6340;
+$danger: #f5365c;
+$light: #adb5bd;
+$dark: #181A0F;
+$default: #969890;
+$white: #fff;
+$neutral: #fff;
+$darker: black;
+
+
+
+// Define light mode colors
+$primary: #A7D26D;
+$secondary: #181A0F;
+$accent: #fff;
+$background: #f4f4f4;
+$text: #181A0F;
+$heading: #FFFFFF;
+$card-background: #fff;
+$links: #181A0F;
+$links-hover: #13170c;
+$button-text: #FFFFFF;
+$buttons-background: #10140a;
+$buttons-hover: #152005;
+$buttons-background-hover: #000000;
+
+//new design
+$apple-background: rgb(255 255 255 / 60%);
+$backdrop-filter: blur(10px);
+
+// Define dark mode colors
+// $primary: #A7D26D; 
+// $secondary: #181A0F;
+// $accent: #fff;
+// $background: #181A0F;
+$darkmode-text:  #ffffffa8;
+// $heading: #FFFFFF;
+// $card-background: #FFFFFF03;
+// $links: #FFFFFF;
+// $links-hover: #FFFFFF;
+// $button-text: #FFFFFF;
+// $buttons-background: #22271D;
+// $buttons-hover: #22271D;
+// $buttons-background-hover: #FFFFFF;
+
+.color-primary {
+    color: $primary !important;
+}
+.color-secondary {
+    color: $secondary !important;
+}
+.color-accent {
+    color: $accent !important;
+}
+.color-darkmode-text {
+    color: $darkmode-text !important;
+}
+
+// Default styles
+body {
+    font-family: 'IBM Plex Mono', monospace;
+    background-image: url(grid.svg) !important;
+    background-color: #F7F7F0   !important;
+    color: $text !important;
+    line-height: 1.6;
+}
+
+:root {
+    --blue: $blue;
+    --indigo: $indigo;
+    --purple: $purple;
+    --pink: $pink;
+    --red: $red;
+    --orange: $orange;
+    --yellow: $yellow;
+    --green: $green;
+    --teal: $teal;
+    --cyan: $cyan;
+    --white: $white;
+    --gray: $gray;
+    --gray-dark: $gray-dark;
+    --light: $light;
+    --lighter: $lighter;
+    --primary: $primary;
+    --secondary: $secondary;
+    --success: $success;
+    --info: $info;
+    --warning: $warning;
+    --danger: $danger;
+    --light: $light;
+    --dark: $dark;
+    --default: $default;
+    --white: $white;
+    --neutral: $neutral;
+    --darker: $darker;
+
+    --breakpoint-xs: 0;
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+    --font-family-sans-serif: Open Sans, sans-serif;
+    --font-family-monospace: $font-space-grotesk $font-space-grotesk $font-roboto-mono sans-serif !important;
+}
+
+.text-primary,
+.text,
+.text-accent {
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.text-dark {
+    color: $dark !important;
+}
+
+
+.border-text {
+    border-color: #ffffff1e !important;
+}
+
+.text-primary {
+    color: $primary !important;
+}
+
+.text-secondary {
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.video-upper-case,
+.btn {
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+
+a {
+    text-decoration: none;
+    color: $text !important;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.nav-link, .navbar{
+    color: $darkmode-text !important;
+    a {
+        color: $darkmode-text !important;
+
+        &hover {
+            color: $primary !important;
+        }
+    }
+
+}
+
+.nav-link.active,
+.nav-link.active::before,
+.nav-link.active {
+    background-color: $primary !important;
+    color: $dark !important;
+    border: none !important;
+    border-radius: 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: bold;
+    font-family: 'IBM Plex Mono', monospace;
+    color: $primary;
+}
+
+.bg-primary {
+    background-color: $primary !important;
+}
+
+.bg-apple{
+    background-color: $apple-background !important;
+    backdrop-filter: $backdrop-filter !important;
+}
+
+.bg-dark{
+    background-color: $dark !important;
+}
+
+.alert-primary {
+    background-color: $primary !important;
+    color: $text;
+}
+
+.alert-secondary {
+    background-color: $secondary !important;
+    color: $text;
+}
+
+.alert-success {
+    background-color: $success !important;
+    color: $text;
+}
+
+.alert-danger {
+    background-color: $danger !important;
+    color: $text;
+}
+
+.alert-warning {
+    background-color: $warning !important;
+    color: $text;
+}
+
+.alert-info {
+    background-color: $info !important;
+    color: $text;
+}
+
+
+// Buttons
+.btn-primary {
+    background-color: $primary !important;
+    color: $secondary !important;
+    border: none;
+
+    &:hover {
+        background-color: darken($primary, 10%);
+    }
+}
+
+.btn {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-weight: 600 !important;
+    font-size: .875rem !important;
+    text-transform: uppercase !important;
+}
+
+.btn-outline-primary {
+    color: $text !important;
+    border-color: $primary !important;
+    background-color: transparent;
+    background-image: none;
+
+    &:hover {
+        background-color: $primary !important;
+        color: $secondary !important;
+    }
+}
+
+.btn-secondary {
+    background-color: $background !important;
+    color: $text !important;
+
+    &:hover {
+        background-color: lighten($primary, 10%);
+    }
+}
+
+.btn-success {
+    background-color: $success !important;
+    color: $secondary !important;
+    border: none;
+
+    &:hover {
+        background-color: darken($success, 10%);
+    }
+}
+
+.btn-outline-success {
+    color: $success !important;
+    border-color: $success !important;
+    background-color: transparent;
+    background-image: none;
+
+    &:hover {
+        background-color: $success !important;
+        color: $text !important;
+    }
+}
+
+.btn-danger {
+    background-color: $danger !important;
+    color: $text !important;
+    border: none;
+
+    &:hover {
+        background-color: darken($danger, 10%);
+    }
+}
+
+.btn-dark {
+    background-color: $dark !important;
+    color: white !important;
+    border: none;
+    font-weight: 100;
+
+    &:hover {
+        background-color: darken($dark, 10%);
+    }
+}
+
+.btn-outline-danger {
+    color: $danger !important;
+    border-color: $danger !important;
+    background-color: transparent;
+    background-image: none;
+
+    &:hover {
+        background-color: $danger !important;
+        color: $text !important;
+    }
+}
+
+.btn-link {
+    color: $primary !important;
+}
+
+
+.breadcrumb {
+    background-color: $card-background !important;
+}
+
+// Forms
+.form-control {
+    border: none !important;
+
+    &:focus {
+        outline-color: $primary !important;
+    }
+}
+
+// Additional Styles
+// ... (styles remain the same)
+
+// Dropdown Menu
+.dropdown-menu {
+    min-width: 200px;
+
+    // Dropdown Header
+    .dropdown-header {
+        font-weight: bold;
+        color: $primary !important;
+        background-color: $background !important;
+        padding: 0.75rem 1rem;
+    }
+
+    // Dropdown Items
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        color: $text !important;
+        transition: background-color 0.3s ease;
+        border-bottom: 1px solid transparent;
+
+        i,
+        span {
+            color: $text !important;
+        }
+
+        &:hover {
+            background-color: $primary !important;
+            color: $white !important;
+        }
+
+        // Icon in Dropdown Item
+        i {
+            margin-right: 10px;
+        }
+    }
+
+    // Dropdown Divider
+    .dropdown-divider {
+        margin: 0.5rem 0;
+        border-color: $primary !important;
+    }
+}
+
+.input-group,
+.form-control {
+    background-color: $apple-background;
+    backdrop-filter: blur($backdrop-filter);
+}
+
+.card {
+    background-color: $apple-background;
+    backdrop-filter: blur($backdrop-filter);
+    color: $text !important;
+    border-radius: 1rem;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.065);
+
+    .text-success {
+        color: $primary !important;
+    }
+
+    .text-nowrap {
+        color: $text !important;
+    }
+
+    .card{
+        background-color: transparent !important;
+    }
+
+    .list-group-item{
+        background-color: transparent!important;
+    }
+
+    .card-header, .card-footer{
+        background-color: transparent !important;
+    }
+}
+
+
+
+
+.bg-gradient-info {
+    background: $primary !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(to bottom, $primary, darken($primary, 30%)) !important;
+}
+
+#sidenav-main {
+    background-color: $dark !important;
+    box-shadow: none;
+    color: $darkmode-text !important;
+}
+
+#sidenav-collapse-main {
+    margin-right: 1px;
+}
+
+.profile-image {
+    border-radius: 1rem;
+    width: 200px;
+}
+
+.online-circle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: $success;
+}
+
+.background-container {
+    position: fixed;
+    bottom: 15%;
+    left: 25%;
+    width: 900px;
+    height: 900px;
+    overflow: hidden;
+    opacity: 0.7;
+    z-index: 1;
+    filter: blur(150px);
+    isolation: isolate;
+    pointer-events: none;
+    max-width: 100%;
+    z-index: -1;
+}
+
+
+.glowing-element {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.glowing-element svg {
+    width: 65%;
+    height: 65%;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    opacity: 0.5;
+    position: relative;
+    display: block;
+}
+
+input[type="text"] {
+    background-color: $white !important;
+    color: $text !important;
+    border: none !important;
+}
+#tabs-icons-text .nav-item .nav-link {
+    color: $text !important;
+}
+
+#navbar-main{
+    background-color: transparent !important;
+}
+
+.action-tools {
+    background-color: $card-background !important;
+    color: $text !important;
+    border-radius: 1rem;
+    box-shadow: none !important;
+    border: none !important;
+    cursor: pointer !important;
+
+    &:hover {
+        background-color: transparent !important;
+    }
+}
+
+.messagebox{
+    border-radius: 1rem;
+    border-bottom-right-radius: 0;
+}
+
+/* Grayscale filter applied by default */
+.grayscale {
+    filter: grayscale(100%);
+    transition: filter 0.3s ease-in-out;
+}
+
+.grayscale:hover {
+    filter: grayscale(0%);
+}
+
+/* Sidebar styles */
+.sidebar {
+    height: 100%;
+    width: 100px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    white-space: nowrap;
+  }
+
+  /* Sidebar item styles */
+  .sidebar a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 19px;
+    color: #818181;
+    display: block;
+  }
+
+  /* Change color on hover */
+  .sidebar a:hover {
+    color: #f1f1f1;
+  }
+
+  /* Style the icon and text */
+  .material-icons,
+  .icon-text {
+    vertical-align: middle;
+  }
+
+  .material-icons {
+    padding-bottom: 3px;
+    margin-right: 30px;
+  }
+
+  /* Main content styles */
+  #main {
+    transition: margin-left .5s;
+    padding: 16px;
+    margin-left: 100px;
+  }
+
+  /* Add media query for smaller screens */
+  @media screen and (max-height: 450px) {
+    .sidebar {padding-top: 15px;}
+    .sidebar a {font-size: 18px;}
+  }
+
+#my-logo-text{
+    color: $primary !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+
+.daterangepicker .ranges li.active {
+    background-color: $primary !important;
+    color: $text !important;
+}
+.daterangepicker td.active, .daterangepicker td.active:hover {
+    background-color: $primary !important;
+    color: $text !important;
+}
+
+.daterangepicker td.in-range {
+    color: $text !important;
+}
+
+.daterangepicker.opensright {
+    &::before {
+        display: none !important;
+    }
+    &::after {
+        display: none !important;
+    }
+}
+
+#reportrange{
+    border-radius: .5rem;
+    color: $white;
+}
+
+.chart{
+    height: 100%;
+}
+
+.page-item.active .page-link {
+    background-color: $primary !important;
+    border-color: $primary !important;
+}

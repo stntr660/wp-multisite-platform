@@ -1,0 +1,44 @@
+Category name,Category slug,Category description,Parent category,Display type,Tax: product_cat
+Gros électroménager,gros-electromenager,Catégorie principale: Gros électroménager,,default,yes
+Cuisson,cuisson,Sous-catégorie de Gros électroménager,Gros électroménager,default,yes
+Four,four,Type de produit dans Cuisson,Cuisson,default,yes
+Plaque de cuisson,plaque-de-cuisson,Type de produit dans Cuisson,Cuisson,default,yes
+Cuisinière,cuisiniere,Type de produit dans Cuisson,Cuisson,default,yes
+Lavage,lavage,Sous-catégorie de Gros électroménager,Gros électroménager,default,yes
+Lave-vaisselle,lave-vaisselle,Type de produit dans Lavage,Lavage,default,yes
+Lave-linge,lave-linge,Type de produit dans Lavage,Lavage,default,yes
+Froid,froid,Sous-catégorie de Gros électroménager,Gros électroménager,default,yes
+Réfrigérateur,refrigerateur,Type de produit dans Froid,Froid,default,yes
+Congélateur,congelateur,Type de produit dans Froid,Froid,default,yes
+Cave à vin,cave-a-vin,Type de produit dans Froid,Froid,default,yes
+Petit électroménager,petit-electromenager,Catégorie principale: Petit électroménager,,default,yes
+Préparation culinaire,preparation-culinaire,Sous-catégorie de Petit électroménager,Petit électroménager,default,yes
+Mixeur/Blender,mixeurblender,Type de produit dans Préparation culinaire,Préparation culinaire,default,yes
+Robot multifonction,robot-multifonction,Type de produit dans Préparation culinaire,Préparation culinaire,default,yes
+Hachoir,hachoir,Type de produit dans Préparation culinaire,Préparation culinaire,default,yes
+Petit-déjeuner,petit-dejeuner,Sous-catégorie de Petit électroménager,Petit électroménager,default,yes
+Machine à café,machine-a-cafe,Type de produit dans Petit-déjeuner,Petit-déjeuner,default,yes
+Bouilloire,bouilloire,Type de produit dans Petit-déjeuner,Petit-déjeuner,default,yes
+Grille-pain,grille-pain,Type de produit dans Petit-déjeuner,Petit-déjeuner,default,yes
+Entretien,entretien,Sous-catégorie de Petit électroménager,Petit électroménager,default,yes
+Aspirateur,aspirateur,Type de produit dans Entretien,Entretien,default,yes
+Nettoyeur vapeur,nettoyeur-vapeur,Type de produit dans Entretien,Entretien,default,yes
+Cuisson,cuisson,Sous-catégorie de Petit électroménager,Petit électroménager,default,yes
+Friteuse,friteuse,Type de produit dans Cuisson,Cuisson,default,yes
+Grill,grill,Type de produit dans Cuisson,Cuisson,default,yes
+Four micro-ondes,four-micro-ondes,Type de produit dans Cuisson,Cuisson,default,yes
+TV & Audio,tv-and-audio,Catégorie principale: TV & Audio,,default,yes
+TV,tv,Sous-catégorie de TV & Audio,TV & Audio,default,yes
+Smart TV,smart-tv,Type de produit dans TV,TV,default,yes
+TV Standard,tv-standard,Type de produit dans TV,TV,default,yes
+Audio,audio,Sous-catégorie de TV & Audio,TV & Audio,default,yes
+Home Cinema,home-cinema,Type de produit dans Audio,Audio,default,yes
+Barre de son,barre-de-son,Type de produit dans Audio,Audio,default,yes
+Enceinte,enceinte,Type de produit dans Audio,Audio,default,yes
+Climatisation,climatisation,Catégorie principale: Climatisation,,default,yes
+Climatiseur,climatiseur,Sous-catégorie de Climatisation,Climatisation,default,yes
+Climatiseur Split,climatiseur-split,Type de produit dans Climatiseur,Climatiseur,default,yes
+Climatiseur Standard,climatiseur-standard,Type de produit dans Climatiseur,Climatiseur,default,yes
+Traitement air,traitement-air,Sous-catégorie de Climatisation,Climatisation,default,yes
+Déshumidificateur,deshumidificateur,Type de produit dans Traitement air,Traitement air,default,yes
+Purificateur,purificateur,Type de produit dans Traitement air,Traitement air,default,yes

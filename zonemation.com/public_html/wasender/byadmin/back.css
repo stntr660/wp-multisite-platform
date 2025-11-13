@@ -1,0 +1,539 @@
+@font-face {
+  font-family: 'IBM Plex Mono', monospace;
+  src: url(Venera-700.otf) format("truetype");
+}
+.color-primary {
+  color: #A7D26D !important;
+}
+
+.color-secondary {
+  color: #181A0F !important;
+}
+
+.color-accent {
+  color: #fff !important;
+}
+
+.color-darkmode-text {
+  color: rgba(255, 255, 255, 0.6588235294) !important;
+}
+
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background-image: url(grid.svg) !important;
+  background-color: #F7F7F0 !important;
+  color: #181A0F !important;
+  line-height: 1.6;
+}
+
+:root {
+  --blue: $blue;
+  --indigo: $indigo;
+  --purple: $purple;
+  --pink: $pink;
+  --red: $red;
+  --orange: $orange;
+  --yellow: $yellow;
+  --green: $green;
+  --teal: $teal;
+  --cyan: $cyan;
+  --white: $white;
+  --gray: $gray;
+  --gray-dark: $gray-dark;
+  --light: $light;
+  --lighter: $lighter;
+  --primary: $primary;
+  --secondary: $secondary;
+  --success: $success;
+  --info: $info;
+  --warning: $warning;
+  --danger: $danger;
+  --light: $light;
+  --dark: $dark;
+  --default: $default;
+  --white: $white;
+  --neutral: $neutral;
+  --darker: $darker;
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --font-family-sans-serif: Open Sans, sans-serif;
+  --font-family-monospace: $font-space-grotesk $font-space-grotesk $font-roboto-mono sans-serif !important;
+}
+
+.text-primary,
+.text,
+.text-accent {
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.text-dark {
+  color: #181A0F !important;
+}
+
+.border-text {
+  border-color: rgba(255, 255, 255, 0.1176470588) !important;
+}
+
+.text-primary {
+  color: #A7D26D !important;
+}
+
+.text-secondary {
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.video-upper-case,
+.btn {
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+a {
+  text-decoration: none;
+  color: #181A0F !important;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.nav-link, .navbar {
+  color: rgba(255, 255, 255, 0.6588235294) !important;
+}
+.nav-link a, .navbar a {
+  color: rgba(255, 255, 255, 0.6588235294) !important;
+}
+.nav-link ahover, .navbar ahover {
+  color: #A7D26D !important;
+}
+
+.nav-link.active,
+.nav-link.active::before,
+.nav-link.active {
+  background-color: #A7D26D !important;
+  color: #181A0F !important;
+  border: none !important;
+  border-radius: 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #A7D26D;
+}
+
+.bg-primary {
+  background-color: #A7D26D !important;
+}
+
+.bg-apple {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.bg-dark {
+  background-color: #181A0F !important;
+}
+
+.alert-primary {
+  background-color: #A7D26D !important;
+  color: #181A0F;
+}
+
+.alert-secondary {
+  background-color: #181A0F !important;
+  color: #181A0F;
+}
+
+.alert-success {
+  background-color: #5dd05d !important;
+  color: #181A0F;
+}
+
+.alert-danger {
+  background-color: #f5365c !important;
+  color: #181A0F;
+}
+
+.alert-warning {
+  background-color: #fb6340 !important;
+  color: #181A0F;
+}
+
+.alert-info {
+  background-color: #11cdef !important;
+  color: #181A0F;
+}
+
+.btn-primary {
+  background-color: #A7D26D !important;
+  color: #181A0F !important;
+  border: none;
+}
+.btn-primary:hover {
+  background-color: #90c646;
+}
+
+.btn {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  text-transform: uppercase !important;
+}
+
+.btn-outline-primary {
+  color: #181A0F !important;
+  border-color: #A7D26D !important;
+  background-color: transparent;
+  background-image: none;
+}
+.btn-outline-primary:hover {
+  background-color: #A7D26D !important;
+  color: #181A0F !important;
+}
+
+.btn-secondary {
+  background-color: #f4f4f4 !important;
+  color: #181A0F !important;
+}
+.btn-secondary:hover {
+  background-color: #bede94;
+}
+
+.btn-success {
+  background-color: #5dd05d !important;
+  color: #181A0F !important;
+  border: none;
+}
+.btn-success:hover {
+  background-color: #38c238;
+}
+
+.btn-outline-success {
+  color: #5dd05d !important;
+  border-color: #5dd05d !important;
+  background-color: transparent;
+  background-image: none;
+}
+.btn-outline-success:hover {
+  background-color: #5dd05d !important;
+  color: #181A0F !important;
+}
+
+.btn-danger {
+  background-color: #f5365c !important;
+  color: #181A0F !important;
+  border: none;
+}
+.btn-danger:hover {
+  background-color: #ec0c38;
+}
+
+.btn-dark {
+  background-color: #181A0F !important;
+  color: white !important;
+  border: none;
+  font-weight: 100;
+}
+.btn-dark:hover {
+  background-color: black;
+}
+
+.btn-outline-danger {
+  color: #f5365c !important;
+  border-color: #f5365c !important;
+  background-color: transparent;
+  background-image: none;
+}
+.btn-outline-danger:hover {
+  background-color: #f5365c !important;
+  color: #181A0F !important;
+}
+
+.btn-link {
+  color: #A7D26D !important;
+}
+
+.breadcrumb {
+  background-color: #fff !important;
+}
+
+.form-control {
+  border: none !important;
+}
+.form-control:focus {
+  outline-color: #A7D26D !important;
+}
+
+.dropdown-menu {
+  min-width: 200px;
+}
+.dropdown-menu .dropdown-header {
+  font-weight: bold;
+  color: #A7D26D !important;
+  background-color: #f4f4f4 !important;
+  padding: 0.75rem 1rem;
+}
+.dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #181A0F !important;
+  transition: background-color 0.3s ease;
+  border-bottom: 1px solid transparent;
+}
+.dropdown-menu .dropdown-item i,
+.dropdown-menu .dropdown-item span {
+  color: #181A0F !important;
+}
+.dropdown-menu .dropdown-item:hover {
+  background-color: #A7D26D !important;
+  color: #fff !important;
+}
+.dropdown-menu .dropdown-item i {
+  margin-right: 10px;
+}
+.dropdown-menu .dropdown-divider {
+  margin: 0.5rem 0;
+  border-color: #A7D26D !important;
+}
+
+.input-group,
+.form-control {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(blur(10px));
+}
+
+.card {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(blur(10px));
+  color: #181A0F !important;
+  border-radius: 1rem;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.065);
+}
+.card .text-success {
+  color: #A7D26D !important;
+}
+.card .text-nowrap {
+  color: #181A0F !important;
+}
+.card .card {
+  background-color: transparent !important;
+}
+.card .list-group-item {
+  background-color: transparent !important;
+}
+.card .card-header, .card .card-footer {
+  background-color: transparent !important;
+}
+
+.bg-gradient-info {
+  background: #A7D26D !important;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(to bottom, #A7D26D, #5a7f27) !important;
+}
+
+#sidenav-main {
+  background-color: #181A0F !important;
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.6588235294) !important;
+}
+
+#sidenav-collapse-main {
+  margin-right: 1px;
+}
+
+.profile-image {
+  border-radius: 1rem;
+  width: 200px;
+}
+
+.online-circle {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #5dd05d;
+}
+
+.background-container {
+  position: fixed;
+  bottom: 15%;
+  left: 25%;
+  width: 900px;
+  height: 900px;
+  overflow: hidden;
+  opacity: 0.7;
+  z-index: 1;
+  filter: blur(150px);
+  isolation: isolate;
+  pointer-events: none;
+  max-width: 100%;
+  z-index: -1;
+}
+
+.glowing-element {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.glowing-element svg {
+  width: 65%;
+  height: 65%;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+  opacity: 0.5;
+  position: relative;
+  display: block;
+}
+
+input[type=text] {
+  background-color: #fff !important;
+  color: #181A0F !important;
+  border: none !important;
+}
+
+#tabs-icons-text .nav-item .nav-link {
+  color: #181A0F !important;
+}
+
+#navbar-main {
+  background-color: transparent !important;
+}
+
+.action-tools {
+  background-color: #fff !important;
+  color: #181A0F !important;
+  border-radius: 1rem;
+  box-shadow: none !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+.action-tools:hover {
+  background-color: transparent !important;
+}
+
+.messagebox {
+  border-radius: 1rem;
+  border-bottom-right-radius: 0;
+}
+
+/* Grayscale filter applied by default */
+.grayscale {
+  filter: grayscale(100%);
+  transition: filter 0.3s ease-in-out;
+}
+
+.grayscale:hover {
+  filter: grayscale(0%);
+}
+
+/* Sidebar styles */
+.sidebar {
+  height: 100%;
+  width: 100px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+  white-space: nowrap;
+}
+
+/* Sidebar item styles */
+.sidebar a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 19px;
+  color: #818181;
+  display: block;
+}
+
+/* Change color on hover */
+.sidebar a:hover {
+  color: #f1f1f1;
+}
+
+/* Style the icon and text */
+.material-icons,
+.icon-text {
+  vertical-align: middle;
+}
+
+.material-icons {
+  padding-bottom: 3px;
+  margin-right: 30px;
+}
+
+/* Main content styles */
+#main {
+  transition: margin-left 0.5s;
+  padding: 16px;
+  margin-left: 100px;
+}
+
+/* Add media query for smaller screens */
+@media screen and (max-height: 450px) {
+  .sidebar {
+    padding-top: 15px;
+  }
+  .sidebar a {
+    font-size: 18px;
+  }
+}
+#my-logo-text {
+  color: #A7D26D !important;
+  font-family: "Venera", sans-serif !important;
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+.daterangepicker .ranges li.active {
+  background-color: #A7D26D !important;
+  color: #181A0F !important;
+}
+
+.daterangepicker td.active, .daterangepicker td.active:hover {
+  background-color: #A7D26D !important;
+  color: #181A0F !important;
+}
+
+.daterangepicker td.in-range {
+  color: #181A0F !important;
+}
+
+.daterangepicker.opensright::before {
+  display: none !important;
+}
+.daterangepicker.opensright::after {
+  display: none !important;
+}
+
+#reportrange {
+  border-radius: 0.5rem;
+  color: #fff;
+}
+
+.chart {
+  height: 100%;
+}
+
+.page-item.active .page-link {
+  background-color: #A7D26D !important;
+  border-color: #A7D26D !important;
+}
+
+/*# sourceMappingURL=back.css.map */

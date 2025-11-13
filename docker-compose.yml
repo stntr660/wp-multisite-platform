@@ -1,0 +1,282 @@
+version: '3.8'
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/ssl/certs
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - airarom
+      - electroromanos
+      - freshexpress
+      - oumniarentalcars
+      - sabeel
+      - sabeelacademy
+      - sumo
+      - yvesmorel
+      - zonemation
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: wordpress
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+      - ./backups:/backups
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - wp-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis Cache
+  redis:
+    image: redis:alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # AirArom WordPress Site
+  airarom:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: airarom-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${AIRAROM_DB_NAME}
+      WORDPRESS_DB_USER: ${AIRAROM_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${AIRAROM_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+      WP_CACHE: "true"
+      WP_DEBUG: "false"
+    volumes:
+      - ./airarom.ma/public_html:/var/www/html
+      - wp_airarom:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # ElectroRomanos WordPress Site
+  electroromanos:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: electroromanos-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${ELECTROROMANOS_DB_NAME}
+      WORDPRESS_DB_USER: ${ELECTROROMANOS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${ELECTROROMANOS_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+      WP_CACHE: "true"
+      WP_DEBUG: "false"
+    volumes:
+      - ./electroromanos.ma/public_html:/var/www/html
+      - wp_electroromanos:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # FreshExpress WordPress Site
+  freshexpress:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: freshexpress-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${FRESHEXPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${FRESHEXPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${FRESHEXPRESS_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./freshexpress.ma/public_html:/var/www/html
+      - wp_freshexpress:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # OumniaRentalCars Static Site
+  oumniarentalcars:
+    image: nginx:alpine
+    container_name: oumniarentalcars-static
+    volumes:
+      - ./oumniarentalcars.com/public_html:/usr/share/nginx/html
+      - ./nginx/static.conf:/etc/nginx/conf.d/default.conf
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # Sabeel Agency WordPress Site
+  sabeel:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: sabeel-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${SABEEL_DB_NAME}
+      WORDPRESS_DB_USER: ${SABEEL_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${SABEEL_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./sabeel.agency/public_html:/var/www/html
+      - wp_sabeel:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # Sabeel Academy WordPress Site
+  sabeelacademy:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: sabeelacademy-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${SABEELACADEMY_DB_NAME}
+      WORDPRESS_DB_USER: ${SABEELACADEMY_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${SABEELACADEMY_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./sabeelacademy.ma/public_html:/var/www/html
+      - wp_sabeelacademy:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # Sumo WordPress Site
+  sumo:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: sumo-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${SUMO_DB_NAME}
+      WORDPRESS_DB_USER: ${SUMO_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${SUMO_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./sumo.ma/public_html:/var/www/html
+      - wp_sumo:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # YvesMorel WordPress Site
+  yvesmorel:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: yvesmorel-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${YVESMOREL_DB_NAME}
+      WORDPRESS_DB_USER: ${YVESMOREL_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${YVESMOREL_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./yvesmorel.ma/public_html:/var/www/html
+      - wp_yvesmorel:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # Zonemation WordPress Site
+  zonemation:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.wordpress
+    container_name: zonemation-wp
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${ZONEMATION_DB_NAME}
+      WORDPRESS_DB_USER: ${ZONEMATION_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${ZONEMATION_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./zonemation.com/public_html:/var/www/html
+      - wp_zonemation:/var/www/html/wp-content/uploads
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    networks:
+      - wp-network
+
+volumes:
+  mysql_data:
+  redis_data:
+  wp_airarom:
+  wp_electroromanos:
+  wp_freshexpress:
+  wp_sabeel:
+  wp_sabeelacademy:
+  wp_sumo:
+  wp_yvesmorel:
+  wp_zonemation:
+
+networks:
+  wp-network:
+    driver: bridge

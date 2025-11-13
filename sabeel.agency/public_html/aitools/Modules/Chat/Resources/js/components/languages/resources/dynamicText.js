@@ -1,0 +1,18 @@
+const dynamicText = [
+    trans("Dashboard"),
+    trans("Prebuilt Templates"),
+    trans("Long Article"),
+    trans("Image Maker"),
+    trans("Code Writer"),
+    trans("Speech to Text"),
+    trans("Voiceover"),
+    trans("Chat"),
+    trans("Gallery"),
+    trans("Support Ticket"),
+    trans("Drive"),
+    trans("Account"),
+    trans("Settings"),
+    trans("Logout"),
+    trans("Image"),
+    trans("Document"),
+];
