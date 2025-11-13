@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/your-username/wordpress-multisite/blob/main/docs/CI-CD-SETUP.md
+    about: Check the comprehensive setup and troubleshooting guide
+  - name: 💬 Slack Support
+    url: https://your-workspace.slack.com/channels/wordpress-infrastructure
+    about: Get real-time support for urgent production issues
+  - name: 🚀 Add New Website
+    url: https://github.com/your-username/wordpress-multisite/actions/workflows/add-website.yml
+    about: Use the automated workflow to add a new website

@@ -1,0 +1,636 @@
+name: 🆕 Add New Website
+
+on:
+  workflow_dispatch:
+    inputs:
+      website_name:
+        description: 'Website name (e.g., newsite)'
+        required: true
+        type: string
+      domain_name:
+        description: 'Domain name (e.g., newsite.com)'
+        required: true
+        type: string
+      website_type:
+        description: 'Website type'
+        required: true
+        type: choice
+        options:
+          - wordpress
+          - static
+      database_name:
+        description: 'Database name (for WordPress sites)'
+        required: false
+        type: string
+      description:
+        description: 'Website description'
+        required: false
+        type: string
+
+env:
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  validate-inputs:
+    name: 🔍 Validate Inputs
+    runs-on: ubuntu-latest
+    
+    outputs:
+      website_name: ${{ steps.validate.outputs.website_name }}
+      domain_name: ${{ steps.validate.outputs.domain_name }}
+      website_type: ${{ steps.validate.outputs.website_type }}
+      database_name: ${{ steps.validate.outputs.database_name }}
+    
+    steps:
+      - name: Validate and sanitize inputs
+        id: validate
+        run: |
+          # Sanitize website name
+          WEBSITE_NAME=$(echo "${{ github.event.inputs.website_name }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+          DOMAIN_NAME="${{ github.event.inputs.domain_name }}"
+          WEBSITE_TYPE="${{ github.event.inputs.website_type }}"
+          
+          # Validate website name
+          if [[ ! "$WEBSITE_NAME" =~ ^[a-z][a-z0-9]*$ ]]; then
+            echo "❌ Invalid website name. Must start with letter and contain only lowercase letters and numbers."
+            exit 1
+          fi
+          
+          # Validate domain name
+          if [[ ! "$DOMAIN_NAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$ ]]; then
+            echo "❌ Invalid domain name format."
+            exit 1
+          fi
+          
+          # Set database name
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            if [ -n "${{ github.event.inputs.database_name }}" ]; then
+              DATABASE_NAME="${{ github.event.inputs.database_name }}"
+            else
+              DATABASE_NAME="${WEBSITE_NAME}_wp"
+            fi
+          else
+            DATABASE_NAME=""
+          fi
+          
+          echo "✅ Inputs validated:"
+          echo "  Website Name: $WEBSITE_NAME"
+          echo "  Domain Name: $DOMAIN_NAME"
+          echo "  Website Type: $WEBSITE_TYPE"
+          echo "  Database Name: $DATABASE_NAME"
+          
+          echo "website_name=$WEBSITE_NAME" >> $GITHUB_OUTPUT
+          echo "domain_name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
+          echo "website_type=$WEBSITE_TYPE" >> $GITHUB_OUTPUT
+          echo "database_name=$DATABASE_NAME" >> $GITHUB_OUTPUT
+
+  check-conflicts:
+    name: 🔍 Check for Conflicts
+    runs-on: ubuntu-latest
+    needs: validate-inputs
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for existing website
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          
+          # Check if website directory already exists
+          if [ -d "$DOMAIN_NAME" ]; then
+            echo "❌ Website directory '$DOMAIN_NAME' already exists."
+            exit 1
+          fi
+          
+          # Check if website is already in docker-compose.yml
+          if grep -q "container_name: ${WEBSITE_NAME}-" docker-compose.yml; then
+            echo "❌ Website '$WEBSITE_NAME' already exists in docker-compose.yml."
+            exit 1
+          fi
+          
+          # Check nginx configuration
+          if grep -q "$DOMAIN_NAME" nginx/conf.d/default.conf 2>/dev/null; then
+            echo "❌ Domain '$DOMAIN_NAME' already configured in nginx."
+            exit 1
+          fi
+          
+          echo "✅ No conflicts found. Website can be added."
+
+  create-website-structure:
+    name: 🏗️ Create Website Structure
+    runs-on: ubuntu-latest
+    needs: [validate-inputs, check-conflicts]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create feature branch
+        run: |
+          BRANCH_NAME="matt/add-website-${{ needs.validate-inputs.outputs.website_name }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "Created branch: $BRANCH_NAME"
+
+      - name: Create website directory structure
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          
+          echo "🏗️ Creating website structure for $DOMAIN_NAME..."
+          
+          # Create website directory
+          mkdir -p "$DOMAIN_NAME/public_html"
+          
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            # WordPress structure
+            mkdir -p "$DOMAIN_NAME/public_html/wp-content/themes"
+            mkdir -p "$DOMAIN_NAME/public_html/wp-content/plugins"
+            mkdir -p "$DOMAIN_NAME/public_html/wp-content/uploads"
+            
+            # Create .gitkeep files
+            touch "$DOMAIN_NAME/public_html/.gitkeep"
+            touch "$DOMAIN_NAME/public_html/wp-content/.gitkeep"
+            touch "$DOMAIN_NAME/public_html/wp-content/themes/.gitkeep"
+            touch "$DOMAIN_NAME/public_html/wp-content/plugins/.gitkeep"
+            touch "$DOMAIN_NAME/public_html/wp-content/uploads/.gitkeep"
+            
+            # Create DO_NOT_UPLOAD_HERE marker
+            echo "This directory structure is managed by Docker and CI/CD. Do not upload files directly here." > "$DOMAIN_NAME/DO_NOT_UPLOAD_HERE"
+            
+            # Create basic index.php
+            cat > "$DOMAIN_NAME/public_html/index.php" << 'EOF'
+          <?php
+          // WordPress entry point
+          // This file will be replaced by WordPress core during deployment
+          echo '<h1>WordPress site is being set up...</h1>';
+          EOF
+          
+          else
+            # Static site structure
+            cat > "$DOMAIN_NAME/public_html/index.html" << EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>$DOMAIN_NAME</title>
+          </head>
+          <body>
+              <h1>Welcome to $DOMAIN_NAME</h1>
+              <p>This is a placeholder page. Please replace with your content.</p>
+          </body>
+          </html>
+          EOF
+          fi
+          
+          echo "✅ Website structure created for $DOMAIN_NAME"
+
+      - name: Update Docker Compose configuration
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          DATABASE_NAME="${{ needs.validate-inputs.outputs.database_name }}"
+          
+          echo "🐳 Updating Docker Compose configuration..."
+          
+          # Backup original docker-compose.yml
+          cp docker-compose.yml docker-compose.yml.backup
+          
+          # Add new service before the volumes section
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            # WordPress service
+            cat >> docker-compose-new-service.yml << EOF
+          
+            # $DOMAIN_NAME WordPress Site
+            $WEBSITE_NAME:
+              build:
+                context: .
+                dockerfile: ./dockerfiles/Dockerfile.wordpress
+              container_name: ${WEBSITE_NAME}-wp
+              environment:
+                WORDPRESS_DB_HOST: mysql
+                WORDPRESS_DB_NAME: \${${WEBSITE_NAME^^}_DB_NAME}
+                WORDPRESS_DB_USER: \${${WEBSITE_NAME^^}_DB_USER}
+                WORDPRESS_DB_PASSWORD: \${${WEBSITE_NAME^^}_DB_PASSWORD}
+                WORDPRESS_TABLE_PREFIX: wp_
+                WP_CACHE: "true"
+                WP_DEBUG: "false"
+              volumes:
+                - ./$DOMAIN_NAME/public_html:/var/www/html
+                - wp_$WEBSITE_NAME:/var/www/html/wp-content/uploads
+              depends_on:
+                - mysql
+                - redis
+              restart: unless-stopped
+              networks:
+                - wp-network
+          EOF
+          else
+            # Static site service
+            cat >> docker-compose-new-service.yml << EOF
+          
+            # $DOMAIN_NAME Static Site
+            $WEBSITE_NAME:
+              image: nginx:alpine
+              container_name: ${WEBSITE_NAME}-static
+              volumes:
+                - ./$DOMAIN_NAME/public_html:/usr/share/nginx/html
+                - ./nginx/static.conf:/etc/nginx/conf.d/default.conf
+              restart: unless-stopped
+              networks:
+                - wp-network
+          EOF
+          fi
+          
+          # Insert new service before volumes section
+          awk '
+          /^volumes:/ {
+            print ""
+            while ((getline line < "docker-compose-new-service.yml") > 0) {
+              print line
+            }
+            close("docker-compose-new-service.yml")
+          }
+          { print }
+          ' docker-compose.yml > docker-compose-updated.yml
+          
+          mv docker-compose-updated.yml docker-compose.yml
+          rm docker-compose-new-service.yml
+          
+          # Update nginx dependencies
+          sed -i "s/depends_on:/depends_on:\n      - $WEBSITE_NAME/" docker-compose.yml
+          
+          # Add volume for WordPress sites
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            sed -i "/wp_zonemation:/a\\  wp_$WEBSITE_NAME:" docker-compose.yml
+          fi
+          
+          echo "✅ Docker Compose updated"
+
+      - name: Update Nginx configuration
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          
+          echo "🔧 Updating Nginx configuration..."
+          
+          # Backup original nginx config
+          cp nginx/conf.d/default.conf nginx/conf.d/default.conf.backup
+          
+          # Add new server block
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            cat >> nginx/conf.d/default.conf << EOF
+          
+          # $DOMAIN_NAME WordPress Site
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $DOMAIN_NAME www.$DOMAIN_NAME;
+              
+              location / {
+                  proxy_pass http://${WEBSITE_NAME}:80;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+              
+              # SSL redirect (to be enabled after SSL setup)
+              # return 301 https://\$server_name\$request_uri;
+          }
+          
+          # HTTPS configuration (to be uncommented after SSL setup)
+          # server {
+          #     listen 443 ssl http2;
+          #     listen [::]:443 ssl http2;
+          #     server_name $DOMAIN_NAME www.$DOMAIN_NAME;
+          #     
+          #     ssl_certificate /etc/ssl/certs/$DOMAIN_NAME/fullchain.pem;
+          #     ssl_certificate_key /etc/ssl/certs/$DOMAIN_NAME/privkey.pem;
+          #     
+          #     location / {
+          #         proxy_pass http://${WEBSITE_NAME}:80;
+          #         proxy_set_header Host \$host;
+          #         proxy_set_header X-Real-IP \$remote_addr;
+          #         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+          #         proxy_set_header X-Forwarded-Proto \$scheme;
+          #     }
+          # }
+          EOF
+          else
+            cat >> nginx/conf.d/default.conf << EOF
+          
+          # $DOMAIN_NAME Static Site
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $DOMAIN_NAME www.$DOMAIN_NAME;
+              
+              location / {
+                  proxy_pass http://${WEBSITE_NAME}:80;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+          }
+          EOF
+          fi
+          
+          echo "✅ Nginx configuration updated"
+
+      - name: Update deployment scripts
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          DATABASE_NAME="${{ needs.validate-inputs.outputs.database_name }}"
+          
+          echo "📜 Updating deployment scripts..."
+          
+          # Backup original deploy script
+          cp scripts/deploy.sh scripts/deploy.sh.backup
+          
+          # Add new website to backup script
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            # Add to databases list
+            sed -i "s/\"zonemation_wp\"/\"zonemation_wp\" \"$DATABASE_NAME\"/" scripts/deploy.sh
+            
+            # Add to sites list
+            sed -i "s/\"zonemation.com\"/\"zonemation.com\" \"$DOMAIN_NAME\"/" scripts/deploy.sh
+            
+            # Add to health check
+            sed -i "s/\"yvesmorel\"/\"yvesmorel\" \"$WEBSITE_NAME\"/" scripts/deploy.sh
+          fi
+          
+          echo "✅ Deployment scripts updated"
+
+      - name: Create environment template
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          DATABASE_NAME="${{ needs.validate-inputs.outputs.database_name }}"
+          
+          echo "🔧 Creating environment template..."
+          
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            cat >> .env.example << EOF
+          
+          # $DOMAIN_NAME WordPress Site Configuration
+          ${WEBSITE_NAME^^}_DB_NAME=$DATABASE_NAME
+          ${WEBSITE_NAME^^}_DB_USER=${WEBSITE_NAME}_user
+          ${WEBSITE_NAME^^}_DB_PASSWORD=your_secure_password_here
+          EOF
+          fi
+          
+          echo "✅ Environment template created"
+
+      - name: Create database initialization script
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          DATABASE_NAME="${{ needs.validate-inputs.outputs.database_name }}"
+          
+          if [ "$WEBSITE_TYPE" = "wordpress" ]; then
+            echo "🗄️ Creating database initialization script..."
+            
+            cat >> mysql/init/02-$WEBSITE_NAME-database.sql << EOF
+          -- Create database and user for $DATABASE_NAME
+          CREATE DATABASE IF NOT EXISTS \`$DATABASE_NAME\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+          CREATE USER IF NOT EXISTS '${WEBSITE_NAME}_user'@'%' IDENTIFIED BY 'temp_password_to_be_changed';
+          GRANT ALL PRIVILEGES ON \`$DATABASE_NAME\`.* TO '${WEBSITE_NAME}_user'@'%';
+          FLUSH PRIVILEGES;
+          EOF
+            
+            echo "✅ Database initialization script created"
+          fi
+
+      - name: Create documentation
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          DATABASE_NAME="${{ needs.validate-inputs.outputs.database_name }}"
+          DESCRIPTION="${{ github.event.inputs.description }}"
+          
+          echo "📚 Creating documentation..."
+          
+          # Create website-specific README
+          cat > "$DOMAIN_NAME/README.md" << EOF
+          # $DOMAIN_NAME
+          
+          **Type:** ${WEBSITE_TYPE^}  
+          **Domain:** $DOMAIN_NAME  
+          **Container:** ${WEBSITE_NAME}-$([ "$WEBSITE_TYPE" = "wordpress" ] && echo "wp" || echo "static")  
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && echo "**Database:** $DATABASE_NAME")
+          
+          ## Description
+          ${DESCRIPTION:-"No description provided"}
+          
+          ## Setup Instructions
+          
+          ### Environment Configuration
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && cat << 'WPEOF'
+          Add the following to your \`.env\` file:
+          \`\`\`bash
+          ${WEBSITE_NAME^^}_DB_NAME=$DATABASE_NAME
+          ${WEBSITE_NAME^^}_DB_USER=${WEBSITE_NAME}_user
+          ${WEBSITE_NAME^^}_DB_PASSWORD=your_secure_password
+          \`\`\`
+          WPEOF
+          )
+          
+          ### Deployment
+          \`\`\`bash
+          # Start the website
+          docker-compose up -d $WEBSITE_NAME
+          
+          # Check status
+          docker-compose ps $WEBSITE_NAME
+          
+          # View logs
+          docker-compose logs -f $WEBSITE_NAME
+          \`\`\`
+          
+          ### Access
+          - **Development:** http://$DOMAIN_NAME (after adding to /etc/hosts)
+          - **Production:** https://$DOMAIN_NAME
+          
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && cat << 'WPEOF'
+          ### WordPress Admin
+          After initial setup, access WordPress admin at:
+          - https://$DOMAIN_NAME/wp-admin
+          WPEOF
+          )
+          
+          ## Maintenance
+          
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && cat << 'WPEOF'
+          ### Database Backup
+          \`\`\`bash
+          # Backup database
+          ./scripts/deploy.sh backup
+          
+          # Manual database backup
+          docker-compose exec mysql mysqldump -uroot -p$DATABASE_NAME > backups/${DATABASE_NAME}_\$(date +%Y%m%d_%H%M%S).sql
+          \`\`\`
+          WPEOF
+          )
+          
+          ### File Backup
+          \`\`\`bash
+          # Backup website files
+          tar -czf backups/${DOMAIN_NAME}_files_\$(date +%Y%m%d_%H%M%S).tar.gz $DOMAIN_NAME/
+          \`\`\`
+          
+          ## SSL Certificate
+          \`\`\`bash
+          # Generate SSL certificate
+          ./scripts/deploy.sh ssl
+          
+          # Manual certificate generation
+          certbot certonly --standalone -d $DOMAIN_NAME -d www.$DOMAIN_NAME
+          \`\`\`
+          
+          ## Troubleshooting
+          
+          ### Common Issues
+          - **Container not starting:** Check logs with \`docker-compose logs $WEBSITE_NAME\`
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && echo "- **Database connection:** Verify environment variables in \`.env\`")
+          - **Domain not accessible:** Check nginx configuration and DNS settings
+          
+          ### Support
+          For support, create an issue in the repository with:
+          - Website name: $WEBSITE_NAME
+          - Domain: $DOMAIN_NAME
+          - Error logs: \`docker-compose logs $WEBSITE_NAME\`
+          EOF
+          
+          echo "✅ Documentation created"
+
+      - name: Commit changes
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          git add .
+          git commit -m "Add new ${WEBSITE_TYPE} website: $DOMAIN_NAME
+
+          - Created website structure for $DOMAIN_NAME
+          - Updated Docker Compose configuration
+          - Updated Nginx configuration  
+          - Added deployment scripts updates
+          - Created documentation
+          - Added database initialization (for WordPress)
+          
+          Website details:
+          - Name: $WEBSITE_NAME
+          - Domain: $DOMAIN_NAME
+          - Type: ${WEBSITE_TYPE^}
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && echo "- Database: ${{ needs.validate-inputs.outputs.database_name }}")
+          
+          Generated with GitHub Actions"
+
+      - name: Push branch and create PR
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          BRANCH_NAME="matt/add-website-$WEBSITE_NAME"
+          
+          git push origin "$BRANCH_NAME"
+          
+          # Create pull request
+          gh pr create \
+            --title "Add new ${WEBSITE_TYPE} website: $DOMAIN_NAME" \
+            --body "$(cat << EOF
+          ## Summary
+          - [ ] Add new ${WEBSITE_TYPE} website: \`$DOMAIN_NAME\`
+          - [ ] Configure Docker Compose service
+          - [ ] Update Nginx reverse proxy configuration
+          - [ ] Add deployment scripts integration
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && echo "- [ ] Set up WordPress database configuration")
+          
+          ## Website Details
+          - **Website Name:** $WEBSITE_NAME
+          - **Domain:** $DOMAIN_NAME  
+          - **Type:** ${WEBSITE_TYPE^}
+          - **Container:** ${WEBSITE_NAME}-$([ "$WEBSITE_TYPE" = "wordpress" ] && echo "wp" || echo "static")
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && echo "- **Database:** ${{ needs.validate-inputs.outputs.database_name }}")
+          
+          ## Configuration Required
+          
+          ### Environment Variables
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && cat << 'ENVEOF'
+          Add these to your production \`.env\` file:
+          \`\`\`bash
+          ${WEBSITE_NAME^^}_DB_NAME=${{ needs.validate-inputs.outputs.database_name }}
+          ${WEBSITE_NAME^^}_DB_USER=${WEBSITE_NAME}_user  
+          ${WEBSITE_NAME^^}_DB_PASSWORD=your_secure_password
+          \`\`\`
+          ENVEOF
+          )
+          
+          ### DNS Configuration
+          Point the following DNS records to your server:
+          - A record: \`$DOMAIN_NAME\` → Your server IP
+          - A record: \`www.$DOMAIN_NAME\` → Your server IP
+          
+          ### SSL Certificate
+          After DNS propagation, run:
+          \`\`\`bash
+          ./scripts/deploy.sh ssl
+          \`\`\`
+          
+          ## Test Plan
+          - [ ] Docker Compose validation
+          - [ ] Container builds successfully
+          - [ ] Nginx configuration is valid
+          - [ ] Website is accessible locally
+          $([ "$WEBSITE_TYPE" = "wordpress" ] && echo "- [ ] Database connection works")
+          - [ ] SSL certificate can be generated
+          
+          ## Generated with GitHub Actions
+          This PR was automatically generated by the Add Website workflow.
+          EOF
+          )" \
+            --assignee "${{ github.actor }}"
+          
+          echo "✅ Pull request created for website: $DOMAIN_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify completion
+        run: |
+          WEBSITE_NAME="${{ needs.validate-inputs.outputs.website_name }}"
+          DOMAIN_NAME="${{ needs.validate-inputs.outputs.domain_name }}"
+          WEBSITE_TYPE="${{ needs.validate-inputs.outputs.website_type }}"
+          
+          echo "🎉 Website addition workflow completed!"
+          echo ""
+          echo "Summary:"
+          echo "  ✅ Website Name: $WEBSITE_NAME" 
+          echo "  ✅ Domain: $DOMAIN_NAME"
+          echo "  ✅ Type: ${WEBSITE_TYPE^}"
+          echo "  ✅ Branch created: matt/add-website-$WEBSITE_NAME"
+          echo "  ✅ Pull request created"
+          echo ""
+          echo "Next steps:"
+          echo "  1. Review the pull request"
+          echo "  2. Add environment variables to production .env"
+          echo "  3. Configure DNS records"  
+          echo "  4. Merge the pull request"
+          echo "  5. Deploy to production"
+          echo "  6. Generate SSL certificates"

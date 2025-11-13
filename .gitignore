@@ -1,0 +1,206 @@
+# WordPress Multi-Site Docker Project - GitIgnore
+
+# =================
+# Environment Files
+# =================
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.backup
+
+# =================
+# WordPress Core Files
+# =================
+# WordPress core files (managed by Docker)
+*/public_html/wp-admin/
+*/public_html/wp-includes/
+*/public_html/wp-*.php
+*/public_html/index.php
+*/public_html/license.txt
+*/public_html/readme.html
+*/public_html/xmlrpc.php
+
+# WordPress config (contains sensitive info)
+*/public_html/wp-config.php
+
+# =================
+# WordPress Content - Selective Exclusion
+# =================
+# WordPress uploads (media files)
+*/public_html/wp-content/uploads/
+*/public_html/wp-content/cache/
+*/public_html/wp-content/backup*/
+*/public_html/wp-content/backups/
+*/public_html/wp-content/upgrade/
+
+# WordPress plugins (managed via composer/deployment)
+*/public_html/wp-content/plugins/
+!*/public_html/wp-content/plugins/.gitkeep
+
+# WordPress themes (exclude default themes, keep custom)
+*/public_html/wp-content/themes/twentytwenty*/
+*/public_html/wp-content/themes/twenty-twenty*/
+
+# WordPress language files
+*/public_html/wp-content/languages/
+
+# Object cache
+*/public_html/wp-content/object-cache.php
+
+# WordPress maintenance mode
+*/public_html/.maintenance
+
+# =================
+# Docker & Infrastructure
+# =================
+# Docker volumes data
+docker-data/
+volumes/
+
+# Docker logs
+logs/
+*.log
+
+# Backup files
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+*.zip
+
+# SSL certificates (managed by Let's Encrypt)
+ssl/
+certificates/
+*.pem
+*.key
+*.crt
+*.csr
+
+# =================
+# Development Files
+# =================
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Development tools
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Composer
+vendor/
+composer.phar
+
+# =================
+# WordPress Specific
+# =================
+# WordPress debug logs
+*/public_html/wp-content/debug.log
+*/public_html/error_log
+
+# WordPress sitemap
+*/public_html/sitemap*.xml
+*/public_html/sitemap*.xsl
+
+# WordPress robots.txt (environment specific)
+*/public_html/robots.txt
+
+# WordPress .htaccess (environment specific)
+*/public_html/.htaccess
+
+# =================
+# Database & Cache
+# =================
+# Database dumps
+*.sql
+*.sql.gz
+DB/
+database/
+
+# Cache files
+cache/
+*.cache
+
+# Redis dumps
+dump.rdb
+
+# =================
+# Temporary Files
+# =================
+# System temp files
+tmp/
+temp/
+*.tmp
+
+# Compressed files
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# =================
+# Security & Secrets
+# =================
+# SSH keys
+*.pem
+id_rsa*
+known_hosts
+
+# API keys and secrets
+secrets/
+*.secret
+*.key
+
+# =================
+# CI/CD & Deployment
+# =================
+# Deployment scripts output
+deployment.log
+deploy.log
+
+# GitHub Actions artifacts
+.github/workflows/artifacts/
+
+# =================
+# DO NOT UPLOAD markers
+# =================
+# These are just markers, keep them in git
+!*/DO_NOT_UPLOAD_HERE
+
+# =================
+# Keep Essential Structure
+# =================
+# Keep directory structure
+!.gitkeep
+!*/public_html/.gitkeep
+!*/public_html/wp-content/.gitkeep
+!*/public_html/wp-content/themes/.gitkeep
+!*/public_html/wp-content/plugins/.gitkeep
+!*/public_html/wp-content/uploads/.gitkeep
+
+# =================
+# Project Specific
+# =================
+# Custom exclusions for this multi-site setup
+*/public_html/wp-content/mu-plugins/
+*/public_html/wp-content/upgrade/
+
+# Keep custom themes and plugins that should be version controlled
+!*/public_html/wp-content/themes/custom-*
+!*/public_html/wp-content/plugins/custom-*
+
+# =================
+# Documentation Build
+# =================
+# Generated documentation
+docs/build/
+docs/dist/

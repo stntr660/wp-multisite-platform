@@ -1,0 +1,117 @@
+name: 📚 Documentation Check
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/**.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  docs-lint:
+    name: 📝 Lint Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+        
+      - name: Lint Markdown files
+        run: |
+          markdownlint docs/**/*.md README.md || echo "Markdown linting found issues"
+          
+      - name: Check for broken links
+        run: |
+          echo "Checking for broken internal links..."
+          
+          # Simple link checker for internal links
+          grep -r '\[.*\](' docs/ README.md | grep -v 'http' | while read line; do
+            file=$(echo "$line" | cut -d: -f1)
+            link=$(echo "$line" | grep -o '](.*)'| sed 's/](\|)//g')
+            
+            if [[ "$link" == "#"* ]]; then
+              # Skip anchor links for now
+              continue
+            fi
+            
+            if [[ ! -f "$link" ]]; then
+              echo "Broken link in $file: $link"
+            fi
+          done
+          
+  docs-spellcheck:
+    name: 🔤 Spell Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js  
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install cspell
+        run: npm install -g cspell
+        
+      - name: Create cspell config
+        run: |
+          cat > .cspell.json << 'EOF'
+          {
+            "version": "0.2",
+            "language": "en",
+            "words": [
+              "airarom",
+              "electroromanos", 
+              "freshexpress",
+              "sabeel",
+              "sabeelacademy",
+              "yvesmorel",
+              "zonemation",
+              "oumniarentalcars",
+              "hostinger",
+              "nginx",
+              "mysql",
+              "redis",
+              "phpmyadmin",
+              "certbot",
+              "letsencrypt",
+              "wordpress",
+              "wp-admin",
+              "wp-content",
+              "wp-config",
+              "dockerfile",
+              "dockerfiles",
+              "devops",
+              "cicd",
+              "webhooks",
+              "trivy",
+              "hadolint"
+            ],
+            "files": [
+              "**/*.md"
+            ],
+            "ignorePaths": [
+              "node_modules/**"
+            ]
+          }
+          EOF
+          
+      - name: Spell check documentation
+        run: |
+          cspell "docs/**/*.md" "README.md" || echo "Spell check found issues"

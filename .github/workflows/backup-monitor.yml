@@ -1,0 +1,540 @@
+name: 💾 Backup & Monitor
+
+on:
+  schedule:
+    # Daily backups at 2 AM UTC
+    - cron: '0 2 * * *'
+    # Weekly full backup on Sunday at 1 AM UTC
+    - cron: '0 1 * * 0'
+    # Hourly health checks during business hours
+    - cron: '0 9-17 * * 1-5'
+  
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Backup type'
+        required: true
+        default: 'daily'
+        type: choice
+        options:
+          - daily
+          - weekly
+          - emergency
+      include_files:
+        description: 'Include file backups'
+        required: false
+        default: true
+        type: boolean
+      retention_days:
+        description: 'Retention days'
+        required: false
+        default: '30'
+        type: string
+
+env:
+  BACKUP_RETENTION_DAILY: 7
+  BACKUP_RETENTION_WEEKLY: 30
+  BACKUP_RETENTION_EMERGENCY: 90
+
+jobs:
+  # ===========================================
+  # Health Check Job
+  # ===========================================
+  health-check:
+    name: 🏥 Health Check
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9-17 * * 1-5' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Check service health
+        id: health_check
+        run: |
+          echo "🏥 Checking service health..."
+          
+          # Initialize status
+          OVERALL_STATUS="healthy"
+          ISSUES=""
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            # Check Docker services
+            echo '=== Docker Services Status ==='
+            docker-compose ps
+            
+            # Check container health
+            echo '=== Container Health ==='
+            UNHEALTHY_CONTAINERS=\$(docker-compose ps | grep -v 'Up' | grep -v 'Name' | wc -l)
+            
+            if [ \$UNHEALTHY_CONTAINERS -gt 0 ]; then
+              echo 'UNHEALTHY_CONTAINERS='\$UNHEALTHY_CONTAINERS > health_status.txt
+            fi
+            
+            # Check disk space
+            echo '=== Disk Space ==='
+            DISK_USAGE=\$(df -h / | awk 'NR==2 {print \$5}' | sed 's/%//')
+            echo 'DISK_USAGE='\$DISK_USAGE > disk_status.txt
+            
+            if [ \$DISK_USAGE -gt 80 ]; then
+              echo 'HIGH_DISK_USAGE=true' >> disk_status.txt
+            fi
+            
+            # Check memory usage
+            echo '=== Memory Usage ==='
+            MEMORY_USAGE=\$(free | awk 'NR==2{printf \"%.0f\", \$3/\$2*100}')
+            echo 'MEMORY_USAGE='\$MEMORY_USAGE > memory_status.txt
+            
+            if [ \$MEMORY_USAGE -gt 90 ]; then
+              echo 'HIGH_MEMORY_USAGE=true' >> memory_status.txt
+            fi
+            
+            # Check MySQL connectivity
+            echo '=== MySQL Health ==='
+            if ! docker-compose exec -T mysql mysqladmin ping -h localhost --silent; then
+              echo 'MYSQL_DOWN=true' > mysql_status.txt
+            fi
+            
+            # Check Redis connectivity
+            echo '=== Redis Health ==='
+            if ! docker-compose exec -T redis redis-cli ping > /dev/null; then
+              echo 'REDIS_DOWN=true' > redis_status.txt
+            fi
+          "
+          
+          # Check website accessibility
+          echo "🌐 Checking website accessibility..."
+          
+          SITES=(
+            "airarom.ma"
+            "electroromanos.ma" 
+            "freshexpress.ma"
+            "sabeel.agency"
+            "sabeelacademy.ma"
+            "sumo.ma"
+            "yvesmorel.ma"
+            "zonemation.com"
+            "oumniarentalcars.com"
+          )
+          
+          DOWN_SITES=""
+          
+          for site in "${SITES[@]}"; do
+            if ! curl -f -L --max-time 30 "https://$site" > /dev/null 2>&1; then
+              DOWN_SITES="$DOWN_SITES $site"
+              OVERALL_STATUS="unhealthy"
+            fi
+          done
+          
+          if [ -n "$DOWN_SITES" ]; then
+            ISSUES="$ISSUES\n• Sites down: $DOWN_SITES"
+          fi
+          
+          echo "overall_status=$OVERALL_STATUS" >> $GITHUB_OUTPUT
+          echo "issues<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$ISSUES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send health alert if unhealthy
+        if: steps.health_check.outputs.overall_status == 'unhealthy'
+        run: |
+          echo "🚨 Health check failed! Sending alert..."
+          
+          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"🚨 WordPress Multi-Site Health Check Alert\",
+              \"attachments\": [{
+                \"color\": \"danger\",
+                \"title\": \"Health Check Failed\",
+                \"text\": \"Issues detected:${{ steps.health_check.outputs.issues }}\",
+                \"fields\": [{
+                  \"title\": \"Time\",
+                  \"value\": \"$(date)\",
+                  \"short\": true
+                }, {
+                  \"title\": \"Environment\",
+                  \"value\": \"Production\",
+                  \"short\": true
+                }]
+              }]
+            }"
+
+  # ===========================================
+  # Database Backup Job
+  # ===========================================
+  database-backup:
+    name: 💾 Database Backup
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 2 * * *' || github.event.schedule == '0 1 * * 0' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Determine backup type
+        id: backup_type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BACKUP_TYPE="${{ github.event.inputs.backup_type }}"
+            RETENTION_DAYS="${{ github.event.inputs.retention_days }}"
+          elif [ "${{ github.event.schedule }}" = "0 1 * * 0" ]; then
+            BACKUP_TYPE="weekly"
+            RETENTION_DAYS="$BACKUP_RETENTION_WEEKLY"
+          else
+            BACKUP_TYPE="daily"
+            RETENTION_DAYS="$BACKUP_RETENTION_DAILY"
+          fi
+          
+          echo "backup_type=$BACKUP_TYPE" >> $GITHUB_OUTPUT
+          echo "retention_days=$RETENTION_DAYS" >> $GITHUB_OUTPUT
+
+      - name: Create database backup
+        run: |
+          echo "💾 Creating database backup..."
+          
+          BACKUP_TYPE="${{ steps.backup_type.outputs.backup_type }}"
+          TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            # Create backup directory
+            BACKUP_DIR=\"backups/db_${BACKUP_TYPE}_\$TIMESTAMP\"
+            mkdir -p \"\$BACKUP_DIR\"
+            
+            echo \"📂 Backup directory: \$BACKUP_DIR\"
+            
+            # Get MySQL root password
+            MYSQL_ROOT_PASSWORD=\$(grep 'MYSQL_ROOT_PASSWORD' .env | cut -d'=' -f2)
+            
+            # List of databases to backup
+            DATABASES=(
+              \"airarom_wp\"
+              \"electroromanos_wp\"
+              \"freshexpress_wp\"
+              \"sabeel_wp\"
+              \"sabeelacademy_wp\"
+              \"sumo_wp\"
+              \"yvesmorel_wp\"
+              \"zonemation_wp\"
+            )
+            
+            echo \"🗄️ Backing up databases...\"
+            
+            # Backup each database
+            for db in \"\${DATABASES[@]}\"; do
+              echo \"Backing up database: \$db\"
+              
+              # Create individual backup
+              docker-compose exec -T mysql mysqldump \\
+                -uroot -p\"\$MYSQL_ROOT_PASSWORD\" \\
+                --single-transaction \\
+                --routines \\
+                --triggers \\
+                --events \\
+                --add-drop-database \\
+                --create-options \\
+                \"\$db\" > \"\$BACKUP_DIR/\${db}.sql\"
+              
+              # Compress backup
+              gzip \"\$BACKUP_DIR/\${db}.sql\"
+              
+              echo \"✅ Database \$db backed up\"
+            done
+            
+            # Create consolidated backup
+            echo \"📦 Creating consolidated backup...\"
+            docker-compose exec -T mysql mysqldump \\
+              -uroot -p\"\$MYSQL_ROOT_PASSWORD\" \\
+              --single-transaction \\
+              --routines \\
+              --triggers \\
+              --events \\
+              --all-databases > \"\$BACKUP_DIR/all_databases.sql\"
+            
+            gzip \"\$BACKUP_DIR/all_databases.sql\"
+            
+            # Create backup metadata
+            cat > \"\$BACKUP_DIR/backup_info.json\" << EOF
+          {
+            \"backup_type\": \"$BACKUP_TYPE\",
+            \"timestamp\": \"\$TIMESTAMP\",
+            \"date\": \"\$(date -Iseconds)\",
+            \"databases\": \$(printf '%s\\n' \"\${DATABASES[@]}\" | jq -R . | jq -s .),
+            \"retention_days\": \"${{ steps.backup_type.outputs.retention_days }}\",
+            \"size\": \"\$(du -sh \$BACKUP_DIR | cut -f1)\"
+          }
+          EOF
+            
+            echo \"✅ Database backup completed: \$BACKUP_DIR\"
+          "
+
+      - name: File backup
+        if: github.event.inputs.include_files == 'true' || github.event.inputs.include_files == null
+        run: |
+          echo "📁 Creating file backup..."
+          
+          BACKUP_TYPE="${{ steps.backup_type.outputs.backup_type }}"
+          TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            BACKUP_DIR=\"backups/files_${BACKUP_TYPE}_\$TIMESTAMP\"
+            mkdir -p \"\$BACKUP_DIR\"
+            
+            # Website directories to backup
+            SITES=(
+              \"airarom.ma\"
+              \"electroromanos.ma\"
+              \"freshexpress.ma\"
+              \"sabeel.agency\"
+              \"sabeelacademy.ma\"
+              \"sumo.ma\"
+              \"yvesmorel.ma\"
+              \"zonemation.com\"
+              \"oumniarentalcars.com\"
+            )
+            
+            echo \"📂 Backing up website files...\"
+            
+            for site in \"\${SITES[@]}\"; do
+              if [ -d \"\$site\" ]; then
+                echo \"Backing up: \$site\"
+                tar -czf \"\$BACKUP_DIR/\${site}_files.tar.gz\" \"\$site\"
+                echo \"✅ \$site files backed up\"
+              fi
+            done
+            
+            # Backup configuration files
+            echo \"⚙️ Backing up configuration files...\"
+            tar -czf \"\$BACKUP_DIR/config_files.tar.gz\" \\
+              docker-compose.yml \\
+              nginx/ \\
+              scripts/ \\
+              .env.example \\
+              mysql/init/ || echo \"Some config files may be missing\"
+            
+            echo \"✅ File backup completed: \$BACKUP_DIR\"
+          "
+
+      - name: Cleanup old backups
+        run: |
+          echo "🧹 Cleaning up old backups..."
+          
+          RETENTION_DAYS="${{ steps.backup_type.outputs.retention_days }}"
+          BACKUP_TYPE="${{ steps.backup_type.outputs.backup_type }}"
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            echo \"Removing backups older than $RETENTION_DAYS days for type: $BACKUP_TYPE\"
+            
+            # Remove old database backups
+            find backups/ -name \"db_${BACKUP_TYPE}_*\" -type d -mtime +$RETENTION_DAYS -exec rm -rf {} + 2>/dev/null || true
+            
+            # Remove old file backups
+            find backups/ -name \"files_${BACKUP_TYPE}_*\" -type d -mtime +$RETENTION_DAYS -exec rm -rf {} + 2>/dev/null || true
+            
+            # Show remaining backups
+            echo \"📊 Remaining backups:\"
+            ls -la backups/ | grep \"${BACKUP_TYPE}_\" || echo \"No backups found for type: $BACKUP_TYPE\"
+          "
+
+      - name: Backup to external storage
+        if: github.event.schedule == '0 1 * * 0' || github.event.inputs.backup_type == 'weekly'
+        run: |
+          echo "☁️ Uploading weekly backup to external storage..."
+          
+          # Note: Implement external backup storage here
+          # Examples: AWS S3, Google Cloud Storage, FTP, etc.
+          echo "External backup storage configuration needed"
+
+      - name: Send backup notification
+        run: |
+          BACKUP_TYPE="${{ steps.backup_type.outputs.backup_type }}"
+          
+          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"💾 WordPress Multi-Site Backup Completed\",
+              \"attachments\": [{
+                \"color\": \"good\",
+                \"title\": \"${BACKUP_TYPE^} Backup Successful\",
+                \"fields\": [{
+                  \"title\": \"Type\",
+                  \"value\": \"$BACKUP_TYPE\",
+                  \"short\": true
+                }, {
+                  \"title\": \"Time\",
+                  \"value\": \"$(date)\",
+                  \"short\": true
+                }, {
+                  \"title\": \"Retention\",
+                  \"value\": \"${{ steps.backup_type.outputs.retention_days }} days\",
+                  \"short\": true
+                }]
+              }]
+            }" || echo "Slack notification failed"
+
+  # ===========================================
+  # Security Monitoring
+  # ===========================================
+  security-monitor:
+    name: 🔒 Security Monitor
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 2 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Check for security updates
+        run: |
+          echo "🔒 Checking for security updates..."
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            # Check for system updates
+            echo '=== System Updates ==='
+            apt list --upgradable 2>/dev/null | grep -i security || echo 'No security updates available'
+            
+            # Check Docker image updates
+            echo '=== Docker Image Updates ==='
+            cd ${{ secrets.PRODUCTION_PATH }}
+            docker-compose pull --quiet
+            
+            # Check SSL certificate expiration
+            echo '=== SSL Certificate Status ==='
+            for cert in ssl/*/cert.pem; do
+              if [ -f \"\$cert\" ]; then
+                DOMAIN=\$(basename \$(dirname \"\$cert\"))
+                EXPIRY=\$(openssl x509 -enddate -noout -in \"\$cert\" | cut -d= -f2)
+                EXPIRY_EPOCH=\$(date -d \"\$EXPIRY\" +%s)
+                NOW_EPOCH=\$(date +%s)
+                DAYS_LEFT=\$(( (\$EXPIRY_EPOCH - \$NOW_EPOCH) / 86400 ))
+                
+                echo \"Certificate for \$DOMAIN expires in \$DAYS_LEFT days\"
+                
+                if [ \$DAYS_LEFT -lt 30 ]; then
+                  echo \"WARNING: Certificate for \$DOMAIN expires soon!\"
+                fi
+              fi
+            done
+            
+            # Check for failed login attempts
+            echo '=== Security Log Analysis ==='
+            journalctl --since='24 hours ago' | grep -i 'failed\|authentication\|ssh' | wc -l || echo '0' > /tmp/failed_attempts
+            
+            # Check disk space for logs
+            echo '=== Log Disk Usage ==='
+            du -sh logs/ 2>/dev/null || echo 'No logs directory'
+          "
+
+      - name: WordPress security scan
+        run: |
+          echo "🔍 Running WordPress security scan..."
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            # Check WordPress versions
+            echo '=== WordPress Version Check ==='
+            for site in airarom.ma electroromanos.ma freshexpress.ma sabeel.agency sabeelacademy.ma sumo.ma yvesmorel.ma zonemation.com; do
+              if [ -f \"\$site/public_html/wp-includes/version.php\" ]; then
+                VERSION=\$(grep \"wp_version = \" \"\$site/public_html/wp-includes/version.php\" | cut -d\"'\" -f2)
+                echo \"\$site: WordPress \$VERSION\"
+              fi
+            done
+            
+            # Check for suspicious files
+            echo '=== Suspicious File Check ==='
+            find . -name '*.php' -newer \$(date -d '1 day ago' +%Y%m%d) 2>/dev/null | head -10 || echo 'No recent PHP files'
+            
+            # Check file permissions
+            echo '=== File Permission Check ==='
+            find */public_html -type f -perm 777 2>/dev/null | head -5 || echo 'No files with 777 permissions'
+          "
+
+  # ===========================================
+  # Performance Monitoring
+  # ===========================================
+  performance-monitor:
+    name: ⚡ Performance Monitor
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9-17 * * 1-5' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Monitor performance metrics
+        run: |
+          echo "⚡ Monitoring performance metrics..."
+          
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            echo '=== Container Performance ==='
+            docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}'
+            
+            echo '=== Database Performance ==='
+            docker-compose exec -T mysql mysql -uroot -p\$(grep MYSQL_ROOT_PASSWORD .env | cut -d'=' -f2) -e \"
+              SHOW GLOBAL STATUS LIKE 'Threads_connected';
+              SHOW GLOBAL STATUS LIKE 'Queries';
+              SHOW GLOBAL STATUS LIKE 'Slow_queries';
+            \" 2>/dev/null || echo 'MySQL performance check failed'
+            
+            echo '=== Redis Performance ==='
+            docker-compose exec -T redis redis-cli info stats | grep -E 'total_commands_processed|keyspace_hits|keyspace_misses' || echo 'Redis performance check failed'
+            
+            echo '=== Nginx Performance ==='
+            docker-compose exec -T nginx-proxy nginx -s reload || echo 'Nginx reload failed'
+          "
+
+      - name: Website speed test
+        run: |
+          echo "🌐 Running website speed tests..."
+          
+          SITES=(
+            "airarom.ma"
+            "electroromanos.ma"
+            "freshexpress.ma"
+            "sabeel.agency"
+            "sabeelacademy.ma"
+            "sumo.ma"
+            "yvesmorel.ma"
+            "zonemation.com"
+            "oumniarentalcars.com"
+          )
+          
+          for site in "${SITES[@]}"; do
+            echo "Testing $site..."
+            
+            START_TIME=$(date +%s.%3N)
+            if curl -f -L --max-time 30 "https://$site" > /dev/null 2>&1; then
+              END_TIME=$(date +%s.%3N)
+              RESPONSE_TIME=$(echo "$END_TIME - $START_TIME" | bc)
+              echo "✅ $site: ${RESPONSE_TIME}s"
+            else
+              echo "❌ $site: Failed"
+            fi
+          done
