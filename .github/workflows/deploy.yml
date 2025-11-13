@@ -166,8 +166,8 @@ jobs:
       run: |
         ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
           cd ${{ secrets.PRODUCTION_PATH }}
-          if [ -f "docker-compose.yml" ]; then
-            ./scripts/backup.sh emergency
+          if [ -f "docker-compose.yml" ] && [ -f "scripts/backup-database.sh" ]; then
+            ./scripts/backup-database.sh emergency
           fi
         EOF
         
@@ -184,14 +184,14 @@ jobs:
           cd ${{ secrets.PRODUCTION_PATH }}
           echo "${{ secrets.PRODUCTION_ENV }}" > .env
           chmod +x scripts/*.sh
-          ./scripts/deploy.sh start production
+          docker-compose up -d
         EOF
         
     - name: 📊 Import databases (if needed)
       run: |
         ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
           cd ${{ secrets.PRODUCTION_PATH }}
-          if [ -d "DB" ] && [ "$(ls -A DB/*.sql 2>/dev/null)" ]; then
+          if [ -d "DB" ] && [ "$(ls -A DB/*.sql 2>/dev/null)" ] && [ -f "scripts/import-database.sh" ]; then
             ./scripts/import-database.sh import
           fi
         EOF
@@ -200,7 +200,9 @@ jobs:
       run: |
         ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
           cd ${{ secrets.PRODUCTION_PATH }}
-          ./scripts/deploy.sh ssl
+          if [ -f "scripts/deploy.sh" ]; then
+            ./scripts/deploy.sh ssl
+          fi
         EOF
         
     - name: 🩺 Production health check
@@ -215,7 +217,9 @@ jobs:
       run: |
         ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
           cd ${{ secrets.PRODUCTION_PATH }}
-          ./scripts/rollback.sh
+          if [ -f "scripts/rollback.sh" ]; then
+            ./scripts/rollback.sh auto
+          fi
         EOF
 
   # ========================================
