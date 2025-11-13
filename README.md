@@ -129,10 +129,11 @@ git push origin main
 
 | Document | Description |
 |----------|-------------|
-| [CI/CD Setup Guide](docs/CI-CD-SETUP.md) | Complete setup and configuration guide |
-| [Adding New Websites](docs/ADDING-NEW-WEBSITES.md) | Step-by-step guide for adding websites |
-| [Environment Configuration](#environment-configuration) | Environment variables and configuration |
-| [Troubleshooting](#troubleshooting) | Common issues and solutions |
+| [Setup Guide](docs/SETUP-GUIDE.md) | Complete server setup and configuration |
+| [Future Branching Strategy](docs/FUTURE-BRANCHING-STRATEGY.md) | Development workflow for scaling |
+| [Complete Backup Strategy](docs/COMPLETE-BACKUP-STRATEGY.md) | Comprehensive backup and recovery guide |
+| [Backblaze B2 Integration](docs/BACKBLAZE-B2-INTEGRATION.md) | Cloud backup strategy and cost analysis |
+| [Deployment Ready Guide](DEPLOYMENT_READY.md) | Production deployment checklist |
 
 ## ⚙️ Environment Configuration
 
@@ -290,9 +291,11 @@ gh pr create --title "Add new website: newsite.com"
 
 | Backup Type | Frequency | Retention | Includes |
 |-------------|-----------|-----------|----------|
-| Daily | 2 AM UTC | 7 days | Databases, critical files |
-| Weekly | Sunday 1 AM | 30 days | Full system backup |
-| Emergency | Before deployments | 90 days | Complete snapshot |
+| Daily Auto | 2 AM UTC | 30 days | All WordPress databases |
+| Emergency | Before deployments | 90 days | Database snapshots |
+| Manual | On-demand | 30 days | Database + metadata |
+
+**Note**: Website files backup and Backblaze B2 cloud storage documented for future implementation.
 
 ### Notifications
 
