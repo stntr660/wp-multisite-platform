@@ -180,7 +180,7 @@ show_logs() {
 check_services_health() {
     log "Checking services health..."
     
-    local services=("nginx" "mysql" "redis" "electromanos" "sabeel" "zonemation" "sumo" "yvesmorel")
+    local services=("nginx" "mysql" "redis" "electroromanos" "freshexpress" "sabeel" "sabeelacademy" "sumo" "yvesmorel" "zonemation" "airarom")
     
     for service in "${services[@]}"; do
         if docker-compose ps $service | grep -q "Up"; then
@@ -203,7 +203,7 @@ backup_all() {
     # Backup MySQL databases
     log "Backing up MySQL databases..."
     
-    local databases=("electromanos_wp" "freshexpress_wp" "sabeel_wp" "sabeelacademy_wp" "sumo_wp" "yvesmorel_wp" "zonemation_wp")
+    local databases=("airarom_wp" "electroromanos_wp" "freshexpress_wp" "sabeel_wp" "sabeelacademy_wp" "sumo_wp" "yvesmorel_wp" "zonemation_wp")
     
     for db in "${databases[@]}"; do
         docker-compose exec -T mysql mysqldump -uroot -p"$(grep MYSQL_ROOT_PASSWORD .env | cut -d'=' -f2)" "$db" > "$backup_path/${db}.sql"
@@ -213,7 +213,7 @@ backup_all() {
     # Backup website files
     log "Backing up website files..."
     
-    local sites=("electromanos.ma" "freshexpress.ma" "sabeel.agency" "sabeelacademy.ma" "sumo.ma" "yvesmorel.ma" "zonemation.com" "oumniarentalcars.com")
+    local sites=("airarom.ma" "electroromanos.ma" "freshexpress.ma" "sabeel.agency" "sabeelacademy.ma" "sumo.ma" "yvesmorel.ma" "zonemation.com" "oumniarentalcars.com")
     
     for site in "${sites[@]}"; do
         if [ -d "$site" ]; then
@@ -240,7 +240,7 @@ install_ssl() {
     fi
     
     # Generate certificates for each domain
-    local domains=("electromanos.ma" "freshexpress.ma" "sabeel.agency" "sabeelacademy.ma" "sumo.ma" "yvesmorel.ma" "zonemation.com" "oumniarentalcars.com")
+    local domains=("airarom.ma" "electroromanos.ma" "freshexpress.ma" "sabeel.agency" "sabeelacademy.ma" "sumo.ma" "yvesmorel.ma" "zonemation.com" "oumniarentalcars.com")
     
     for domain in "${domains[@]}"; do
         info "Generating certificate for $domain"
